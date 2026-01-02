@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chess AI — HARDCORE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:#050507;
+  color:#eaeaf0;
+  font-family:system-ui, sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+.board{
+  display:grid;
+  grid-template-columns:repeat(8,64px);
+  border:4px solid #7cf9ff;
+}
+.cell{
+  width:64px;height:64px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:40px;
+  cursor:pointer;
+}
+.dark{background:#1a1a2e}
+.light{background:#2a2a3a}
+.selected{outline:3px solid #7cf9ff}
+.panel{margin-left:24px;max-width:220px}
+button{
+  margin-top:12px;
+  padding:8px 14px;
+  background:#7cf9ff;
+  border:none;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="board" class="board"></div>
+
+<div class="panel">
+  <h2>♟ Chess AI</h2>
+  <p>Difficulty: <b>HARDCORE</b></p>
+  <button onclick="reset()">Restart</button>
+</div>
+
+<script>
+/* =================== CORE DATA =================== */
+const P = {
+  r:"♜", n:"♞", b:"♝", q:"♛", k:"♚", p:"♟",
+  R:"♖", N:"♘", B:"♗", Q:"♕", K:"♔", P:"♙"
+};
+
+const V = { p:100,n:320,b:330,r:500,q:900,k:20000 };
+
+let board = [
+"rnbqkbnr",
+"pppppppp",
+"........",
+"........",
+"........",
+"........",
+"PPPPPPPP",
+"RNBQKBNR"
+];
+
+let sel=null;
+
+/* =================== RENDER =================== */
+function draw(){
+  const b=document.getElementById("board");
+  b.innerHTML="";
+  board.forEach((r,y)=>{
+    [...r].forEach((c,x)=>{
+      const d=document.createElement("div");
+      d.className="cell "+((x+y)%2?"dark":"light");
+      if(sel && sel.x===x && sel.y===y) d.classList.add("selected");
+      d.textContent=P[c]||"";
+      d.onclick=()=>click(x,y);
+      b.appendChild(d);
+    });
+  });
+}
+
+/* =================== USER MOVE =================== */
+function click(x,y){
+  const c=board[y][x];
+  if(sel){
+    if(move(sel.x,sel.y,x,y,true)){
+      sel=null;
+      setTimeout(aiMove,200);
+    }
+  }else if(c>="A"&&c<="Z"){
+    sel={x,y};
+  }
+  draw();
+}
+
+/* =================== MOVE LOGIC =================== */
+function move(x1,y1,x2,y2){
+  let b=board.map(r=>r.split(""));
+  b[y2][x2]=b[y1][x1];
+  b[y1][x1]=".";
+  board=b.map(r=>r.join(""));
+  return true;
+}
+
+/* =================== AI =================== */
+function aiMove(){
+  let bestScore=1e9,best;
+  genMoves(false).forEach(m=>{
+    const backup=board.slice();
+    move(m.x,m.y,m.xx,m.yy);
+    const score=minimax(3,-1e9,1e9,true);
+    board=backup;
+    if(score<bestScore){
+      bestScore=score;
+      best=m;
+    }
+  });
+  if(best) move(best.x,best.y,best.xx,best.yy);
+  draw();
+}
+
+/* =================== MINIMAX =================== */
+function minimax(depth,alpha,beta,max){
+  if(depth===0) return evalBoard();
+  const moves=genMoves(max);
+  if(max){
+    let best=-1e9;
+    for(const m of moves){
+      const bak=board.slice();
+      move(m.x,m.y,m.xx,m.yy);
+      best=Math.max(best,minimax(depth-1,alpha,beta,false));
+      board=bak;
+      alpha=Math.max(alpha,best);
+      if(beta<=alpha) break;
+    }
+    return best;
+  }else{
+    let best=1e9;
+    for(const m of moves){
+      const bak=board.slice();
+      move(m.x,m.y,m.xx,m.yy);
+      best=Math.min(best,minimax(depth-1,alpha,beta,true));
+      board=bak;
+      beta=Math.min(beta,best);
+      if(beta<=alpha) break;
+    }
+    return best;
+  }
+}
+
+/* =================== MOVE GENERATION =================== */
+function genMoves(white){
+  let res=[];
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){
+    const c=board[y][x];
+    if(c===".")continue;
+    if(white && c>="A"&&c<="Z") gen(x,y,c,res);
+    if(!white && c>="a"&&c<="z") gen(x,y,c,res);
+  }
+  return res;
+}
+
+function gen(x,y,c,res){
+  const dirs={
+    p:[[0,-1]],
+    r:[[1,0],[-1,0],[0,1],[0,-1]],
+    b:[[1,1],[-1,1],[1,-1],[-1,-1]],
+    q:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]],
+    n:[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]],
+    k:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]
+  };
+  const isWhite=c>="A";
+  const t=c.toLowerCase();
+  if(t==="p"){
+    const dy=isWhite?-1:1;
+    const ny=y+dy;
+    if(ny>=0&&ny<8&&board[ny][x]===".") res.push({x,y,xx:x,yy:ny});
+    return;
+  }
+  dirs[t].forEach(d=>{
+    let xx=x+d[0],yy=y+d[1];
+    while(xx>=0&&xx<8&&yy>=0&&yy<8){
+      const o=board[yy][xx];
+      if(o==="."||((o>="A")!==isWhite)){
+        res.push({x,y,xx,yy});
+        if(o!==".") break;
+      }else break;
+      if(t==="n"||t==="k") break;
+      xx+=d[0];yy+=d[1];
+    }
+  });
+}
+
+/* =================== EVAL =================== */
+function evalBoard(){
+  let s=0;
+  board.forEach(r=>[...r].forEach(c=>{
+    if(c===".")return;
+    const v=V[c.toLowerCase()];
+    s+=(c>="A"?v:-v);
+  }));
+  return s;
+}
+
+/* =================== RESET =================== */
+function reset(){
+  board=[
+    "rnbqkbnr",
+    "pppppppp",
+    "........",
+    "........",
+    "........",
+    "........",
+    "PPPPPPPP",
+    "RNBQKBNR"
+  ];
+  sel=null;
+  draw();
+}
+
+draw();
+</script>
+</body>
+</html>
