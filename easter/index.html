@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AnimeJS Core — Advanced</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== BODY ===== */
+body{
+  height:400vh;
+  background:#050507;
+  font-family:system-ui, sans-serif;
+  overflow-x:hidden;
+}
+
+/* ===== STAGE ===== */
+.stage{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  perspective:1200px;
+}
+
+/* ===== CORE WRAPPER ===== */
+.core-wrap{
+  position:relative;
+  width:180px;
+  height:180px;
+  transform-style:preserve-3d;
+}
+
+/* ===== CORE ===== */
+.core{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  position:absolute;
+  background:
+    radial-gradient(circle at 30% 30%,
+      #aefcff,
+      #7cf9ff 35%,
+      #223344 65%,
+      #050507 100%);
+  filter: blur(.2px);
+  transform-style:preserve-3d;
+}
+
+/* glow */
+.core::after{
+  content:"";
+  position:absolute;
+  inset:-60px;
+  background:radial-gradient(circle,
+    rgba(124,249,255,.35),
+    transparent 70%);
+  filter:blur(80px);
+  z-index:-1;
+}
+
+/* inner glass */
+.glass{
+  position:absolute;
+  inset:16px;
+  border-radius:50%;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(10px);
+}
+
+/* scanline */
+.scan{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255,255,255,.15),
+    transparent
+  );
+  animation: scan 4s linear infinite;
+  mix-blend-mode:overlay;
+}
+
+@keyframes scan{
+  from{transform:translateY(-100%)}
+  to{transform:translateY(100%)}
+}
+
+/* hint */
+.hint{
+  position:fixed;
+  bottom:30px;
+  width:100%;
+  text-align:center;
+  color:#7cf9ff;
+  opacity:.5;
+  letter-spacing:.3em;
+  font-size:11px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="stage">
+  <div class="core-wrap" id="wrap">
+    <div class="core" id="core">
+      <div class="glass"></div>
+      <div class="scan"></div>
+    </div>
+  </div>
+</div>
+
+<div class="hint">SCROLL</div>
+
+<script>
+/* ===== ANIMEJS-STYLE ENGINE ===== */
+
+// physics values
+let target = 0;
+let current = 0;
+let velocity = 0;
+
+// config
+const stiffness = 0.08;  // spring strength
+const damping = 0.85;   // friction
+
+const wrap = document.getElementById("wrap");
+const core = document.getElementById("core");
+
+// scroll input
+window.addEventListener("scroll",()=>{
+  target = window.scrollY * 0.35;
+});
+
+// animation loop
+function tick(){
+  // spring physics
+  const force = (target - current) * stiffness;
+  velocity = velocity * damping + force;
+  current += velocity;
+
+  // derived values
+  const rot = current * 0.15;
+  const tilt = Math.sin(current * 0.01) * 15;
+  const scale = 1 + Math.min(Math.abs(velocity) * 0.01, 0.15);
+
+  // render (GPU only)
+  wrap.style.transform = `
+    translateY(${current}px)
+    rotateX(${tilt}deg)
+    rotateZ(${rot}deg)
+    scale(${scale})
+  `;
+
+  core.style.filter = `
+    hue-rotate(${current * 0.3}deg)
+    brightness(${1 + Math.abs(velocity) * 0.05})
+  `;
+
+  requestAnimationFrame(tick);
+}
+
+tick();
+</script>
+
+</body>
+</html>
