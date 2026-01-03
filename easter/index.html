@@ -88,6 +88,9 @@ body{
 </div>
 
 <script>
+let inputBuffer = "";
+let allowInput = false;
+
 /* ===============================
    MS-DOS TYPEWRITER ENGINE
 ================================ */
@@ -129,7 +132,10 @@ function clickSound(freq=900, duration=0.03){
 
 /* TYPE EFFECT */
 function type(){
-  if(line >= lines.length) return;
+  if(line >= lines.length){
+    allowInput = true;
+    return;
+  }
 
   if(char < lines[line].length){
     el.innerHTML += lines[line][char];
@@ -143,7 +149,7 @@ function type(){
     setTimeout(type, speed*6);
   }
 }
-type();
+
 
 /* KEY PRESS SOUND */
 document.addEventListener("keydown", ()=>{
@@ -154,6 +160,39 @@ document.addEventListener("keydown", ()=>{
 document.addEventListener("click", ()=>{
   el.innerHTML = lines.join("<br>");
 });
+  document.addEventListener("keydown", (e)=>{
+  if(!allowInput) return;
+
+  clickSound(600,0.02);
+
+  // ENTER
+  if(e.key === "Enter"){
+    el.innerHTML += "<br>";
+
+    if(inputBuffer.toLowerCase() === "karlmark1337"){
+      sessionStorage.setItem("access_granted","true");
+      window.location.href = "/betas/assets";
+    }else{
+      el.innerHTML += "Bad command or file name<br>C:\\>_";
+      inputBuffer = "";
+    }
+    return;
+  }
+
+  // BACKSPACE
+  if(e.key === "Backspace"){
+    inputBuffer = inputBuffer.slice(0,-1);
+    el.innerHTML = el.innerHTML.slice(0,-1);
+    return;
+  }
+
+  // CHỈ CHO GÕ KÝ TỰ
+  if(e.key.length === 1){
+    inputBuffer += e.key;
+    el.innerHTML += e.key;
+  }
+});
+
 </script>
 
 </body>
