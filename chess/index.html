@@ -114,6 +114,10 @@ function move(x1,y1,x2,y2){
 
 /* =================== AI =================== */
 function aiMove(){
+  if(countWhitePieces() === 0){
+    unlockEasterEgg();
+  }
+
   let bestScore=1e9,best;
   genMoves(false).forEach(m=>{
     const backup=board.slice();
@@ -226,6 +230,15 @@ function reset(){
   ];
   sel=null;
   draw();
+}
+function countWhitePieces(){
+  let count = 0;
+  board.forEach(row=>{
+    [...row].forEach(cell=>{
+      if(cell >= "A" && cell <= "Z") count++;
+    });
+  });
+  return count;
 }
 
 draw();
