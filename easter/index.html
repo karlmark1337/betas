@@ -5,7 +5,6 @@
 <title>shell</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- PIXEL FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
@@ -22,7 +21,6 @@ body{
   overflow:hidden;
 }
 
-/* CRT screen */
 .screen{
   width:90vw;
   max-width:900px;
@@ -38,14 +36,12 @@ body{
     inset 0 0 60px rgba(0,0,0,.8);
 }
 
-/* glow */
 .glow{
   text-shadow:
     0 0 4px #33ff33,
     0 0 12px rgba(51,255,51,.7);
 }
 
-/* cursor */
 .cursor{
   display:inline-block;
   width:12px;
@@ -53,7 +49,6 @@ body{
 }
 @keyframes blink{50%{opacity:0}}
 
-/* scanlines */
 .screen::after{
   content:"";
   position:absolute;
@@ -67,7 +62,6 @@ body{
   mix-blend-mode:overlay;
 }
 
-/* VHS glitch */
 .glitch{
   animation: glitch 6s infinite;
 }
@@ -88,13 +82,17 @@ body{
 </div>
 
 <script>
+/* ===============================
+   STATE
+================================ */
 let inputBuffer = "";
 let allowInput = false;
 
-/* ===============================
-   MS-DOS TYPEWRITER ENGINE
-================================ */
+const el = document.getElementById("text");
 
+/* ===============================
+   BOOT TEXT
+================================ */
 const lines = [
   "Microsoft(R) MS-DOS(R)",
   "Version 6.22",
@@ -106,19 +104,20 @@ const lines = [
   "ACCESS GRANTED.",
   "",
   "Welcome, user.",
-  "This terminal remembers you.",
-  "",
-  "C:\\>_"
+  "Type command to continue.",
+  ""
 ];
 
+let line = 0;
+let char = 0;
 const speed = 45;
-let line = 0, char = 0;
-const el = document.getElementById("text");
 
-/* AUDIO ENGINE */
+/* ===============================
+   AUDIO
+================================ */
 const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-function clickSound(freq=900, duration=0.03){
+function clickSound(freq=800, dur=0.03){
   const o = ctx.createOscillator();
   const g = ctx.createGain();
   o.type = "square";
@@ -127,19 +126,22 @@ function clickSound(freq=900, duration=0.03){
   o.connect(g);
   g.connect(ctx.destination);
   o.start();
-  o.stop(ctx.currentTime + duration);
+  o.stop(ctx.currentTime + dur);
 }
 
-/* TYPE EFFECT */
+/* ===============================
+   TYPEWRITER
+================================ */
 function type(){
   if(line >= lines.length){
     allowInput = true;
+    el.innerHTML += "C:\\>";
     return;
   }
 
   if(char < lines[line].length){
     el.innerHTML += lines[line][char];
-    clickSound(800 + Math.random()*200);
+    clickSound(700 + Math.random()*200);
     char++;
     setTimeout(type, speed);
   }else{
@@ -150,49 +152,50 @@ function type(){
   }
 }
 
+type();
 
-/* KEY PRESS SOUND */
-document.addEventListener("keydown", ()=>{
-  clickSound(600,0.02);
-});
-
-/* CLICK TO SKIP */
-document.addEventListener("click", ()=>{
-  el.innerHTML = lines.join("<br>");
-});
-  document.addEventListener("keydown", (e)=>{
+/* ===============================
+   INPUT HANDLER
+================================ */
+document.addEventListener("keydown", (e)=>{
   if(!allowInput) return;
 
   clickSound(600,0.02);
 
-  // ENTER
   if(e.key === "Enter"){
     el.innerHTML += "<br>";
 
     if(inputBuffer.toLowerCase() === "karlmark1337"){
       sessionStorage.setItem("access_granted","true");
-      window.location.href = "/betas/assets";
-    }else{
-      el.innerHTML += "Bad command or file name<br>C:\\>_";
-      inputBuffer = "";
+      location.href = "/betas/assets";
+      return;
     }
+
+    el.innerHTML += "Bad command or file name<br>C:\\>";
+    inputBuffer = "";
     return;
   }
 
-  // BACKSPACE
   if(e.key === "Backspace"){
+    if(inputBuffer.length === 0) return;
     inputBuffer = inputBuffer.slice(0,-1);
     el.innerHTML = el.innerHTML.slice(0,-1);
     return;
   }
 
-  // CHỈ CHO GÕ KÝ TỰ
   if(e.key.length === 1){
     inputBuffer += e.key;
     el.innerHTML += e.key;
   }
 });
 
+/* ===============================
+   CLICK TO SKIP BOOT
+================================ */
+document.addEventListener("click", ()=>{
+  el.innerHTML = lines.join("<br>") + "<br>C:\\>";
+  allowInput = true;
+});
 </script>
 
 </body>
