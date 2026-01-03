@@ -231,6 +231,7 @@ function reset(){
   sel=null;
   draw();
 }
+/* ===== HÀM ĐẾM QUÂN TRẮNG ===== */
 function countWhitePieces(){
   let count = 0;
   board.forEach(row=>{
@@ -241,7 +242,16 @@ function countWhitePieces(){
   return count;
 }
 
+/* ===== MỞ KHÓA EASTER EGG ===== */
+function unlockEasterEgg(){
+  sessionStorage.setItem("egg_unlocked", "true");
+  window.location.href = "/easter";
+}
 draw();
+if(countWhitePieces() === 0){
+  unlockEasterEgg();
+}
+
 </script>
 </body>
 </html>
