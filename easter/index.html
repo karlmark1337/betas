@@ -30,21 +30,17 @@ body{
   line-height:1.9;
   background:#050505;
   position:relative;
-  transform: perspective(800px) rotateX(2deg);
+  transform: perspective(900px) rotateX(2deg);
   box-shadow:
     0 0 40px rgba(51,255,51,.25),
     inset 0 0 60px rgba(0,0,0,.8);
 }
 
 .glow{
-  text-shadow:
-    0 0 4px #33ff33,
-    0 0 12px rgba(51,255,51,.7);
+  text-shadow:0 0 4px #33ff33,0 0 12px rgba(51,255,51,.7);
 }
 
 .cursor{
-  display:inline-block;
-  width:12px;
   animation: blink 1s steps(1) infinite;
 }
 @keyframes blink{50%{opacity:0}}
@@ -61,140 +57,140 @@ body{
   background-size:100% 4px;
   mix-blend-mode:overlay;
 }
-
-.glitch{
-  animation: glitch 6s infinite;
-}
-@keyframes glitch{
-  0%,95%,100%{transform:none}
-  96%{transform:translateX(-2px)}
-  97%{transform:translateX(2px)}
-  98%{transform:translateY(-1px)}
-  99%{transform:translateY(1px)}
-}
 </style>
 </head>
 
 <body>
 
-<div class="screen glow glitch">
-  <span id="text"></span><span class="cursor">_</span>
+<div class="screen glow">
+  <div id="output"></div>
+  <div id="prompt">
+    <span>C:\></span><span id="input"></span><span class="cursor">_</span>
+  </div>
 </div>
 
 <script>
 /* ===============================
    STATE
 ================================ */
+const output = document.getElementById("output");
+const inputEl = document.getElementById("input");
+
 let inputBuffer = "";
 let allowInput = false;
 
-const el = document.getElementById("text");
+/* ===============================
+   AUDIO (SAFE)
+================================ */
+let ctx;
+function beep(freq=800,dur=0.03){
+  if(!ctx){
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type="square";
+  o.frequency.value=freq;
+  g.gain.value=0.04;
+  o.connect(g); g.connect(ctx.destination);
+  o.start(); o.stop(ctx.currentTime+dur);
+}
 
 /* ===============================
-   BOOT TEXT
+   BOOT
 ================================ */
-const lines = [
+const bootLines = [
   "Microsoft(R) MS-DOS(R)",
   "Version 6.22",
   "",
-  "C:\\> initializing system...",
-  "C:\\> loading memory blocks...",
-  "C:\\> checking hardware...",
+  "Initializing system...",
+  "Loading memory blocks...",
+  "Checking hardware...",
   "",
   "ACCESS GRANTED.",
   "",
-  "Welcome, user.",
   "Type command to continue.",
   ""
 ];
 
-let line = 0;
-let char = 0;
-const speed = 45;
+let l=0,c=0;
+const speed=45;
 
-/* ===============================
-   AUDIO
-================================ */
-const ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-function clickSound(freq=800, dur=0.03){
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.type = "square";
-  o.frequency.value = freq;
-  g.gain.value = 0.04;
-  o.connect(g);
-  g.connect(ctx.destination);
-  o.start();
-  o.stop(ctx.currentTime + dur);
-}
-
-/* ===============================
-   TYPEWRITER
-================================ */
-function type(){
-  if(line >= lines.length){
-    allowInput = true;
-    el.innerHTML += "C:\\>";
+function boot(){
+  if(l>=bootLines.length){
+    allowInput=true;
     return;
   }
 
-  if(char < lines[line].length){
-    el.innerHTML += lines[line][char];
-    clickSound(700 + Math.random()*200);
-    char++;
-    setTimeout(type, speed);
+  if(c<bootLines[l].length){
+    output.innerHTML += bootLines[l][c];
+    beep(700+Math.random()*200);
+    c++;
+    setTimeout(boot,speed);
   }else{
-    el.innerHTML += "<br>";
-    line++;
-    char = 0;
-    setTimeout(type, speed*6);
+    output.innerHTML += "<br>";
+    l++; c=0;
+    setTimeout(boot,speed*6);
   }
 }
-
-type();
+boot();
 
 /* ===============================
-   INPUT HANDLER
+   COMMAND HANDLER
 ================================ */
-document.addEventListener("keydown", (e)=>{
+function runCommand(cmd){
+  const lower = cmd.toLowerCase();
+
+  if(lower==="karlmark1337"){
+    sessionStorage.setItem("access_granted","true");
+    location.href="/betas/assets";
+    return;
+  }
+
+  if(lower==="help"){
+    output.innerHTML += "Available commands:<br>HELP, CLS, WHOAMI<br>";
+    return;
+  }
+
+  if(lower==="cls"){
+    output.innerHTML="";
+    return;
+  }
+
+  if(lower==="whoami"){
+    output.innerHTML += "USER: KARLMARK<br>";
+    return;
+  }
+
+  output.innerHTML += "Bad command or file name<br>";
+}
+
+/* ===============================
+   INPUT
+================================ */
+document.addEventListener("keydown",e=>{
   if(!allowInput) return;
 
-  clickSound(600,0.02);
+  beep(600,0.02);
 
-  if(e.key === "Enter"){
-    el.innerHTML += "<br>";
-
-    if(inputBuffer.toLowerCase() === "karlmark1337"){
-      sessionStorage.setItem("access_granted","true");
-      location.href = "/betas/assets";
-      return;
-    }
-
-    el.innerHTML += "Bad command or file name<br>C:\\>";
-    inputBuffer = "";
+  if(e.key==="Enter"){
+    output.innerHTML += "C:\\>"+inputBuffer+"<br>";
+    runCommand(inputBuffer);
+    inputBuffer="";
+    inputEl.textContent="";
     return;
   }
 
-  if(e.key === "Backspace"){
-    if(inputBuffer.length === 0) return;
-    inputBuffer = inputBuffer.slice(0,-1);
-    el.innerHTML = el.innerHTML.slice(0,-1);
+  if(e.key==="Backspace"){
+    inputBuffer=inputBuffer.slice(0,-1);
+    inputEl.textContent=inputBuffer;
     return;
   }
 
-  if(e.key.length === 1){
-    inputBuffer += e.key;
-    el.innerHTML += e.key;
+  if(e.key.length===1){
+    inputBuffer+=e.key;
+    inputEl.textContent=inputBuffer;
   }
-});
-
-/* ===============================
-   CLICK TO SKIP BOOT
-================================ */
-document.addEventListener("click", ()=>{
-  el.innerHTML = lines.join("<br>") + "<br>C:\\>";
-  allowInput = true;
 });
 </script>
 
