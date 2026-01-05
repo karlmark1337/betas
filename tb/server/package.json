@@ -1,0 +1,12 @@
+{
+  "name": "countdown-server",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "apn": "^2.2.0",
+    "node-cron": "^3.0.2",
+    "dotenv": "^16.4.0"
+  }
+}
