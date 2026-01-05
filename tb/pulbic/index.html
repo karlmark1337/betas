@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Countdown</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.png">
+
+<style>
+body{
+  background:#000;
+  color:#33ff33;
+  font-family:monospace;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+.box{
+  width:90%;
+  max-width:420px;
+  border:1px solid #33ff33;
+  padding:20px;
+}
+.progress{
+  height:14px;
+  background:#022;
+  border:1px solid #33ff33;
+}
+.bar{
+  height:100%;
+  background:#33ff33;
+  width:0%;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h3>⏳ Countdown nợ 300k </h3>
+  <p id="days"></p>
+
+  <p id="money"></p>
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <button onclick="register()">Enable Notification</button>
+</div>
+
+<script>
+/* ==== CONFIG ==== */
+const UNIT = 1000;      // 1 đơn vị = 1000đ
+const CURRENT = 87;     // đã có 87 đơn vị
+const GOAL = 300;       // mục tiêu 300 đơn vị
+
+/* ==== UI ==== */
+const percent = Math.min(100, CURRENT/GOAL*100);
+document.getElementById("bar").style.width = percent+"%";
+document.getElementById("money").innerText =
+  `Đã có ${CURRENT*UNIT}đ / ${GOAL*UNIT}đ`;
+
+const target = new Date("2026-02-22T07:00:00");
+const days = Math.ceil((target - Date.now())/86400000);
+document.getElementById("days").innerText =
+  `Còn ${days} ngày`;
+
+/* ==== SERVICE WORKER ==== */
+async function register(){
+  if(!("serviceWorker" in navigator)){
+    alert("Not supported");
+    return;
+  }
+  await navigator.serviceWorker.register("/sw.js");
+  alert("Đã đăng ký. Hãy Add to Home Screen.");
+}
+</script>
+</body>
+</html>
