@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Countdown</title>
+<title>404404</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,7 +41,7 @@ body{
 
 <body>
 <div class="box">
-  <h3>⏳ Countdown nợ 300k </h3>
+  <h3>404404 </h3>
   <p id="days"></p>
 
   <p id="money"></p>
@@ -49,35 +49,6 @@ body{
     <div class="bar" id="bar"></div>
   </div>
 
-  <button onclick="register()">Enable Notification</button>
-</div>
-
-<script>
-/* ==== CONFIG ==== */
-const UNIT = 1000;      // 1 đơn vị = 1000đ
-const CURRENT = 123;     // đã có 87 đơn vị
-const GOAL = 300;       // mục tiêu 300 đơn vị
-
-/* ==== UI ==== */
-const percent = Math.min(100, CURRENT/GOAL*100);
-document.getElementById("bar").style.width = percent+"%";
-document.getElementById("money").innerText =
-  `Đã có ${CURRENT*UNIT}đ / ${GOAL*UNIT}đ`;
-
-const target = new Date("2026-02-22T07:00:00");
-const days = Math.ceil((target - Date.now())/86400000);
-document.getElementById("days").innerText =
-  `Còn ${days} ngày`;
-
-/* ==== SERVICE WORKER ==== */
-async function register(){
-  if(!("serviceWorker" in navigator)){
-    alert("Not supported");
-    return;
-  }
-  await navigator.serviceWorker.register("/sw.js");
-  alert("Đã đăng ký. Hãy Add to Home Screen.");
-}
 </script>
 </body>
 </html>
