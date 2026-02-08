@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IF YOU SAFE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  height:100vh;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  font-family: monospace;
+}
+
+/* BACKGROUND IMAGE */
+.bg{
+  position:fixed;
+  inset:0;
+  background:url("image.jpg") center/cover no-repeat;
+  filter:contrast(1.2) brightness(.4);
+  animation:bgGlitch 6s infinite;
+}
+
+/* DARK OVERLAY */
+.bg::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.55);
+}
+
+/* TEXT */
+.text{
+  position:relative;
+  color:#fff;
+  font-size:clamp(28px,6vw,72px);
+  letter-spacing:6px;
+  text-transform:uppercase;
+  animation:glitch 2.5s infinite;
+}
+
+/* GLOW */
+.text::before,
+.text::after{
+  content:attr(data-text);
+  position:absolute;
+  left:0;
+  top:0;
+  opacity:.8;
+}
+
+.text::before{
+  color:#0ff;
+  transform:translate(-2px,0);
+  animation:glitch1 .8s infinite;
+}
+
+.text::after{
+  color:#f0f;
+  transform:translate(2px,0);
+  animation:glitch2 1.2s infinite;
+}
+
+/* ANIMATIONS */
+@keyframes glitch{
+  0%,100%{transform:none}
+  20%{transform:skewX(2deg)}
+  40%{transform:skewX(-2deg)}
+  60%{transform:translateY(-2px)}
+  80%{transform:translateY(2px)}
+}
+
+@keyframes glitch1{
+  0%{clip-path:inset(0 0 80% 0)}
+  50%{clip-path:inset(30% 0 40% 0)}
+  100%{clip-path:inset(80% 0 0 0)}
+}
+
+@keyframes glitch2{
+  0%{clip-path:inset(60% 0 10% 0)}
+  50%{clip-path:inset(10% 0 60% 0)}
+  100%{clip-path:inset(0 0 80% 0)}
+}
+
+/* VHS SHAKE */
+@keyframes bgGlitch{
+  0%,100%{transform:none}
+  96%{transform:translateX(-5px)}
+  97%{transform:translateX(5px)}
+  98%{transform:translateY(-3px)}
+  99%{transform:translateY(3px)}
+}
+
+/* SCANLINES */
+.scanlines{
+  pointer-events:none;
+  position:fixed;
+  inset:0;
+  background:linear-gradient(
+    rgba(255,255,255,.03) 50%,
+    rgba(0,0,0,.05) 50%
+  );
+  background-size:100% 4px;
+  mix-blend-mode:overlay;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+<div class="scanlines"></div>
+
+<div class="text" data-text="IF YOU SAFE">
+  IF YOU SAFE
+</div>
+
+<script>
+/* RANDOM GLITCH JUMP */
+setInterval(()=>{
+  const t = document.querySelector(".text");
+  t.style.transform =
+    `translate(${Math.random()*6-3}px,${Math.random()*6-3}px)`;
+  setTimeout(()=>t.style.transform="",80);
+},1200);
+</script>
+
+</body>
+</html>
